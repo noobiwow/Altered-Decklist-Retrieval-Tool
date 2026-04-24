@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Altered Decklist Retrieval Tool",
+  "version": "1.0.0",
+  "description": "Extraction de decklists depuis le site Altered.gg",
+
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "https://api.altered.gg/*",
+    "https://www.altered.gg/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.altered.gg/*/decks*"],
+      "js": ["src/compat.js", "src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "ID Extractor"
+  }
+}
