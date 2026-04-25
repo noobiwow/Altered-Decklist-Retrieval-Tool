@@ -1,4 +1,5 @@
 // background.js
+const browser = typeof browser !== "undefined" ? browser : chrome;
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === "save") {
     chrome.storage.local.set(
