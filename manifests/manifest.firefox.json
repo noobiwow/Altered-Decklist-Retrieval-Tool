@@ -27,10 +27,11 @@
     "default_title": "Decklists Extractor"
   },
 
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "altered-deck-retrieval-tool@addons.mozilla.org",
-      "strict_min_version": "109.0"
+      "strict_min_version": "109.0",
+      "data_collection_permissions": { "required": ["websiteContent"] }
     }
   },
 
