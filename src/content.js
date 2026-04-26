@@ -4,7 +4,12 @@
     if (!DECKS_PATTERN.test(location.pathname)) return;
 
     async function extractAllDecks() {
-        const token = JSON.parse(document.getElementById("__NEXT_DATA__").getHTML()).props.pageProps.session.accessToken;
+        const nextData = document.getElementById("__NEXT_DATA__");
+        if(!nextData) return;
+        let token;
+        token = JSON.parse(nextData.innerHTML).props.pageProps.session.accessToken;
+        const storage = chrome.storage.local;
+        storage.set({accessToken: token});
         const targetUrl = "https://api.altered.gg/deck_user_lists";
         const entries = performance.getEntriesByType("resource");
         const match = entries.find(e => e.name.includes(targetUrl));
@@ -15,6 +20,7 @@
             let hasNext = true;
             let nextUrl = `${match.name}`;
             while (hasNext) {
+                const {accessToken: token} = await storage.get("accessToken");
                 const res = await fetch(nextUrl, {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -22,6 +28,9 @@
                 });
                 if (!res.ok) {
                     throw new Error(`Erreur page ${page}`);
+                }
+                if(!token){
+                    throw new Error('No token found');
                 }
                 const data = await res.json();
                 results.push(...(data["hydra:member"] || []));
@@ -47,103 +56,31 @@
     function showResultModal(json) {
         const overlay = document.createElement("div");
         overlay.id = "id-extractor-modal-overlay";
-        Object.assign(overlay.style, {
-            position:       "fixed",
-            inset:          "0",
-            zIndex:         "1000000",
-            background:     "rgba(0,0,0,0.6)",
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "center",
-            fontFamily:     "inherit",
-        });
 
         const modal = document.createElement("div");
-        Object.assign(modal.style, {
-            background:   "#1e1c16",
-            color:        "#f5f0e0",
-            borderRadius: "16px",
-            padding:      "24px",
-            width:        "min(600px, 90vw)",
-            maxHeight:    "80vh",
-            display:      "flex",
-            flexDirection:"column",
-            gap:          "16px",
-            boxShadow:    "0 8px 40px rgba(0,0,0,0.5)",
-        });
+        modal.id = "id-extractor-modal";
 
         const header = document.createElement("div");
-        Object.assign(header.style, {
-            display:        "flex",
-            justifyContent: "space-between",
-            alignItems:     "center",
-        });
+        header.id = "id-extractor-modal-header"
+        
         const title = document.createElement("span");
-        title.textContent = "Résultats JSON";
-        Object.assign(title.style, {
-            fontWeight:    "800",
-            fontSize:      "16px",
-            letterSpacing: "0.05em",
-            color:         "#C9A84C",
-        });
+        title.id = "id-extractor-modal-title"
+        title.textContent = "JSON";
+
         const closeBtn = document.createElement("button");
+        closeBtn.id = "id-extractor-modal-close-button"
         closeBtn.textContent = "✕";
-        Object.assign(closeBtn.style, {
-            background:   "transparent",
-            border:       "none",
-            color:        "#f5f0e0",
-            fontSize:     "18px",
-            cursor:       "pointer",
-            lineHeight:   "1",
-            padding:      "0 4px",
-        });
         closeBtn.addEventListener("click", () => overlay.remove());
         header.appendChild(title);
         header.appendChild(closeBtn);
 
         const textarea = document.createElement("textarea");
+        textarea.id = "id-extractor-modal-textarea"
         textarea.value = json;
         textarea.readOnly = true;
-        Object.assign(textarea.style, {
-            flex:        "1",
-            minHeight:   "300px",
-            background:  "#2a2720",
-            color:       "#f5f0e0",
-            border:      "1px solid #C9A84C44",
-            borderRadius:"8px",
-            padding:     "12px",
-            fontSize:    "12px",
-            fontFamily:  "monospace",
-            resize:      "vertical",
-            outline:     "none",
-        });
-
-        const copyBtn = document.createElement("button");
-        copyBtn.textContent = "COPIER";
-        Object.assign(copyBtn.style, {
-            padding:       "12px",
-            background:    "#C9A84C",
-            color:         "#2d2a22",
-            border:        "none",
-            borderRadius:  "10px",
-            fontWeight:    "800",
-            fontSize:      "13px",
-            letterSpacing: "0.08em",
-            cursor:        "pointer",
-            transition:    "background 0.15s",
-        });
-        copyBtn.addEventListener("mouseenter", () => copyBtn.style.background = "#b8943e");
-        copyBtn.addEventListener("mouseleave", () => copyBtn.style.background = "#C9A84C");
-        copyBtn.addEventListener("click", () => {
-            textarea.select();
-            document.execCommand("copy");
-            copyBtn.textContent = "COPIÉ !";
-            setTimeout(() => copyBtn.textContent = "COPIER", 1500);
-        });
 
         modal.appendChild(header);
         modal.appendChild(textarea);
-        modal.appendChild(copyBtn);
         overlay.appendChild(modal);
 
         overlay.addEventListener("click", (e) => {
@@ -165,48 +102,6 @@
         </svg>
         <span id="id-extractor-label">EXTRACT</span>
     `;
-
-    Object.assign(btn.style, {
-        position:       "fixed",
-        bottom:         "24px",
-        right:          "24px",
-        zIndex:         "999999",
-        display:        "flex",
-        alignItems:     "center",
-        gap:            "10px",
-        padding:        "14px 24px",
-        background:     "#C9A84C",
-        color:          "#2d2a22",
-        border:         "none",
-        borderRadius:   "16px",
-        fontSize:       "15px",
-        fontWeight:     "600",
-        letterSpacing:  "0.08em",
-        textTransform:  "uppercase",
-        cursor:         "pointer",
-        boxShadow:      "0 4px 16px rgba(0,0,0,0.25)",
-        fontFamily:     "'Work Sans', 'Work Sans Fallback'",
-        transition:     "background 0.15s, transform 0.1s, box-shadow 0.15s",
-    });
-
-    btn.addEventListener("mouseenter", () => {
-        btn.style.background  = "#b8943e";
-        btn.style.boxShadow   = "0 6px 20px rgba(0,0,0,0.32)";
-        btn.style.transform   = "scale(1.04)";
-    });
-    btn.addEventListener("mouseleave", () => {
-        btn.style.background  = "#C9A84C";
-        btn.style.boxShadow   = "0 4px 16px rgba(0,0,0,0.25)";
-        btn.style.transform   = "scale(1)";
-    });
-    btn.addEventListener("mousedown", () => {
-        btn.style.transform   = "scale(0.97)";
-        btn.style.boxShadow   = "0 2px 8px rgba(0,0,0,0.2)";
-    });
-    btn.addEventListener("mouseup", () => {
-        btn.style.transform   = "scale(1.04)";
-        btn.style.boxShadow   = "0 6px 20px rgba(0,0,0,0.32)";
-    });
 
     btn.addEventListener("click", () => triggerExtraction(btn));
 
@@ -248,7 +143,7 @@
     async function triggerExtraction(btn) {
     const label = document.getElementById("id-extractor-label");
     btn.disabled = true;
-    label.textContent = "Progressing…";
+    label.textContent = "Initialization...";
 
     const items = await extractDecks();
 
@@ -263,7 +158,7 @@
         label.textContent = `0 / ${items.length}`;
 
         const results = [];
-        for (const [i, { id, name, type }] of items.entries()) {
+        for (const [i, { id }] of items.entries()) {
             const res = await fetch(`https://api.altered.gg/deck_user_lists/${id}`);
             if (!res.ok) throw new Error(`HTTP ${res.status} pour l'id ${id}`);
             const data = await res.json();
@@ -279,7 +174,7 @@
         } catch (_clipboardErr) {
             showResultModal(json);
         }
-        showToast(`✓ ${results.length} decks transfered !`);
+        showToast(`✓ ${results.length} decks copied in the clipboard !`);
         chrome.runtime.sendMessage({ action: "save", decks: items, url: location.href });
 
     } catch (err) {

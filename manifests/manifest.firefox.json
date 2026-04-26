@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Extraction de decklists depuis le site Altered.gg",
 
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage"],
    "host_permissions": [
     "https://api.altered.gg/*",
     "https://www.altered.gg/*"
@@ -14,6 +14,7 @@
     {
       "matches": ["https://www.altered.gg/*/decks*"],
       "js": ["src/content.js"],
+      "css":["src/style.css"],
       "run_at": "document_idle"
     }
   ],

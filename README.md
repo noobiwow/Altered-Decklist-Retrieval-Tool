@@ -8,9 +8,8 @@ A Firefox Extension that extracts decklists from [Altered.gg](https://www.altere
 2. A floating gold button labeled "EXTRACT" appears in the bottom-right corner
 3. Click the button to:
    - Extract all deck IDs from the current page
-   - Fetch deck data from the Altered.gg API (`https://api.altered.gg/deck_user_lists/{id}`)
-   - Display the results in console log
-   - Save the decks to local storage
+   - If you authorized access to clipboard, decklist file will be saved on your clipboard
+   - If you didn't authorized access to clipboard, a pop-up will open displaying the file
 
 ## Files
 
@@ -48,4 +47,4 @@ Before installing, install the correct package for your browser:
 1. Visit decks list page on Altered.gg
 2. If the button is not showing up, refresh the page
 3. Click the "EXTRACT" button
-4. Open DevTools Console (`F12`) to view the JSON results
+4. Result is copied to clipboard. If browser don't have access to it, a pop-up will display the file.
